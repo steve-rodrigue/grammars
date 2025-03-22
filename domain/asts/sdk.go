@@ -9,8 +9,7 @@ import (
 func NewAdapter() Adapter {
 	grammarAdapter := grammars.NewAdapter()
 	builder := NewBuilder()
-	instructionsBuilder := instructions.NewBuilder()
-	instructionBuilder := instructions.NewInstructionBuilder()
+	instructionBuilder := instructions.NewBuilder()
 	tokensBuilder := instructions.NewTokensBuilder()
 	tokenBuilder := instructions.NewTokenBuilder()
 	elementsBuilder := instructions.NewElementsBuilder()
@@ -19,7 +18,6 @@ func NewAdapter() Adapter {
 	return createAdapter(
 		grammarAdapter,
 		builder,
-		instructionsBuilder,
 		instructionBuilder,
 		tokensBuilder,
 		tokenBuilder,

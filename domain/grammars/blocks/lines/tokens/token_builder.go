@@ -6,12 +6,14 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/cardinalities"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/reverses"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 )
 
 type tokenBuilder struct {
 	element     elements.Element
 	cardinality cardinalities.Cardinality
 	reverse     reverses.Reverse
+	unique      uniques.Unique
 }
 
 func createTokenBuilder() TokenBuilder {
@@ -19,6 +21,7 @@ func createTokenBuilder() TokenBuilder {
 		element:     nil,
 		cardinality: nil,
 		reverse:     nil,
+		unique:      nil,
 	}
 
 	return &out
@@ -47,6 +50,12 @@ func (app *tokenBuilder) WithReverse(reverse reverses.Reverse) TokenBuilder {
 	return app
 }
 
+// WithUnique adds a unique to the builder
+func (app *tokenBuilder) WithUnique(unique uniques.Unique) TokenBuilder {
+	app.unique = unique
+	return app
+}
+
 // Now builds a new Token instance
 func (app *tokenBuilder) Now() (Token, error) {
 	if app.element == nil {
@@ -62,6 +71,23 @@ func (app *tokenBuilder) Now() (Token, error) {
 			app.element,
 			app.cardinality,
 			app.reverse,
+		), nil
+	}
+
+	if app.unique != nil {
+		return createTokenWithReverseWithUnique(
+			app.element,
+			app.cardinality,
+			app.unique,
+		), nil
+	}
+
+	if app.reverse != nil && app.unique != nil {
+		return createTokenWithReverseAndUnique(
+			app.element,
+			app.cardinality,
+			app.reverse,
+			app.unique,
 		), nil
 	}
 

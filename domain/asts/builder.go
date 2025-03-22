@@ -2,6 +2,7 @@ package asts
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/steve-care-software/grammars/domain/asts/instructions"
 )
@@ -33,6 +34,12 @@ func (app *builder) WithRoot(root instructions.Element) Builder {
 func (app *builder) Now() (AST, error) {
 	if app.root == nil {
 		return nil, errors.New("the root is mandatory in order to build a AST instance")
+	}
+
+	_, err := app.root.Validate(map[string]instructions.BlockCount{})
+	if err != nil {
+		str := fmt.Sprintf("there was an error while validating the AST: %s", err.Error())
+		return nil, errors.New(str)
 	}
 
 	return createAST(

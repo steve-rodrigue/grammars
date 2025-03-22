@@ -4,14 +4,14 @@ import (
 	"errors"
 )
 
-type instructionBuilder struct {
+type builder struct {
 	block  string
 	pLine  *uint
 	tokens Tokens
 }
 
-func createInstructionBuilder() InstructionBuilder {
-	out := instructionBuilder{
+func createBuilder() Builder {
+	out := builder{
 		block:  "",
 		pLine:  nil,
 		tokens: nil,
@@ -21,30 +21,30 @@ func createInstructionBuilder() InstructionBuilder {
 }
 
 // Create initializes the builder
-func (app *instructionBuilder) Create() InstructionBuilder {
-	return createInstructionBuilder()
+func (app *builder) Create() Builder {
+	return createBuilder()
 }
 
 // WithBlock adds a block to the builder
-func (app *instructionBuilder) WithBlock(block string) InstructionBuilder {
+func (app *builder) WithBlock(block string) Builder {
 	app.block = block
 	return app
 }
 
 // WithLine adds a line to the builder
-func (app *instructionBuilder) WithLine(line uint) InstructionBuilder {
+func (app *builder) WithLine(line uint) Builder {
 	app.pLine = &line
 	return app
 }
 
 // WithTokens add tokens to the builder
-func (app *instructionBuilder) WithTokens(tokens Tokens) InstructionBuilder {
+func (app *builder) WithTokens(tokens Tokens) Builder {
 	app.tokens = tokens
 	return app
 }
 
 // Now builds a new Instruction instance
-func (app *instructionBuilder) Now() (Instruction, error) {
+func (app *builder) Now() (Instruction, error) {
 	if app.block == "" {
 		return nil, errors.New("the block is mandatory in order to build an Instruction")
 	}

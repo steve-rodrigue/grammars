@@ -16,6 +16,7 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/cardinalities"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/reverses"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/suites"
 	"github.com/steve-care-software/grammars/domain/grammars/constants"
 	constant_tokens "github.com/steve-care-software/grammars/domain/grammars/constants/tokens"
@@ -45,6 +46,7 @@ type adapter struct {
 	tokensBuilder                     tokens.Builder
 	tokenBuilder                      tokens.TokenBuilder
 	reverseBuilder                    reverses.Builder
+	uniqueBuilder                     uniques.Builder
 	elementsBuilder                   elements.Builder
 	elementBuilder                    elements.ElementBuilder
 	rulesBuilder                      rules.Builder
@@ -72,6 +74,8 @@ type adapter struct {
 	tokenReversePrefix                byte
 	tokenReverseEscapePrefix          byte
 	tokenReverseEscapeSuffix          byte
+	tokenMustBeUnique                 byte
+	tokenMustNotBeUnique              byte
 	tokenReferenceSeparator           byte
 	ruleNameSeparator                 byte
 	ruleNameValueSeparator            byte
@@ -115,6 +119,7 @@ func createAdapter(
 	tokensBuilder tokens.Builder,
 	tokenBuilder tokens.TokenBuilder,
 	reverseBuilder reverses.Builder,
+	uniqueBuilder uniques.Builder,
 	elementsBuilder elements.Builder,
 	elementBuilder elements.ElementBuilder,
 	rulesBuilder rules.Builder,
@@ -142,6 +147,8 @@ func createAdapter(
 	tokenReversePrefix byte,
 	tokenReverseEscapePrefix byte,
 	tokenReverseEscapeSuffix byte,
+	tokenMustBeUnique byte,
+	tokenMustNotBeUnique byte,
 	tokenReferenceSeparator byte,
 	ruleNameSeparator byte,
 	ruleNameValueSeparator byte,
@@ -184,6 +191,7 @@ func createAdapter(
 		tokensBuilder:                     tokensBuilder,
 		tokenBuilder:                      tokenBuilder,
 		reverseBuilder:                    reverseBuilder,
+		uniqueBuilder:                     uniqueBuilder,
 		elementsBuilder:                   elementsBuilder,
 		elementBuilder:                    elementBuilder,
 		rulesBuilder:                      rulesBuilder,
@@ -211,6 +219,8 @@ func createAdapter(
 		tokenReversePrefix:                tokenReversePrefix,
 		tokenReverseEscapePrefix:          tokenReverseEscapePrefix,
 		tokenReverseEscapeSuffix:          tokenReverseEscapeSuffix,
+		tokenMustBeUnique:                 tokenMustBeUnique,
+		tokenMustNotBeUnique:              tokenMustNotBeUnique,
 		tokenReferenceSeparator:           tokenReferenceSeparator,
 		ruleNameSeparator:                 ruleNameSeparator,
 		ruleNameValueSeparator:            ruleNameValueSeparator,
@@ -382,8 +392,8 @@ func (app *adapter) bytesToConstantToken(input []byte) (constant_tokens.Token, [
 
 	remaining := retElementRemaining
 	builder := app.constantTokenBuilder.Create().WithElement(retElement).WithAmount(1)
-	retAmount, retRemaining, err := bytesToBracketsIndex(
-		remaining,
+	retBracketIndex, retRemaining, err := bytesToBracketsIndex(
+		retElementRemaining,
 		app.possibleNumbers,
 		app.cardinalityOpen,
 		app.cardinalityClose,
@@ -391,7 +401,7 @@ func (app *adapter) bytesToConstantToken(input []byte) (constant_tokens.Token, [
 	)
 
 	if err == nil {
-		builder.WithAmount(retAmount)
+		builder.WithAmount(retBracketIndex)
 		remaining = retRemaining
 	}
 
@@ -897,6 +907,12 @@ func (app *adapter) bytesToTokenList(input []byte) ([]tokens.Token, []byte, erro
 func (app *adapter) bytesToToken(input []byte) (tokens.Token, []byte, error) {
 	remaining := filterPrefix(input, app.filterBytes)
 	builder := app.tokenBuilder.Create()
+	retUnique, retRemainingAfterUnique, err := app.bytesToTokenUnique(remaining)
+	if err == nil {
+		builder.WithUnique(retUnique)
+		remaining = retRemainingAfterUnique
+	}
+
 	retReverse, retRemainingAfterReverse, err := app.bytesToTokenReverse(remaining)
 	if err == nil {
 		builder.WithReverse(retReverse)
@@ -932,6 +948,53 @@ func (app *adapter) bytesToToken(input []byte) (tokens.Token, []byte, error) {
 	}
 
 	return ins, filterPrefix(retRemaining, app.filterBytes), nil
+}
+
+func (app *adapter) bytesToTokenUnique(input []byte) (uniques.Unique, []byte, error) {
+	remaining := filterPrefix(input, app.filterBytes)
+	if len(remaining) <= 0 {
+		return nil, nil, errors.New("the remaining was NOT expected to be nil in order to create a Unique instance")
+	}
+
+	if remaining[0] != app.tokenMustBeUnique && remaining[0] != app.tokenMustNotBeUnique {
+		return nil, remaining, errors.New("the mustBeUnique or mustNotBeUnique flag coult not be found in the provided input")
+	}
+
+	builder := app.uniqueBuilder.Create()
+	if remaining[0] == app.tokenMustBeUnique {
+		builder.MustBe()
+	}
+
+	if remaining[0] == app.tokenMustNotBeUnique {
+		builder.MustNot()
+	}
+
+	retElement, retRemaining, err := app.bytesToElementReference(remaining[1:])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	remaining = retRemaining
+	builder.WithElement(retElement).WithIndex(0)
+	retAmount, retRemainingAfterBracket, err := bytesToBracketsIndex(
+		remaining,
+		app.possibleNumbers,
+		app.cardinalityOpen,
+		app.cardinalityClose,
+		app.filterBytes,
+	)
+
+	if err == nil {
+		builder.WithIndex(retAmount)
+		remaining = retRemainingAfterBracket
+	}
+
+	ins, err := builder.Now()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return ins, filterPrefix(remaining, app.filterBytes), nil
 }
 
 func (app *adapter) bytesToTokenReverse(input []byte) (reverses.Reverse, []byte, error) {

@@ -26,6 +26,21 @@ func createTokens(
 	return &out
 }
 
+// Validate validates tokens
+func (obj *tokens) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
+	lastBlockNameIndex := map[string]BlockCount{}
+	for _, oneToken := range obj.list {
+		retBlockNameIndex, err := oneToken.Validate(lastBlockNameIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		lastBlockNameIndex = retBlockNameIndex
+	}
+
+	return lastBlockNameIndex, nil
+}
+
 // List returns the list of token
 func (obj *tokens) List() []Token {
 	return obj.list

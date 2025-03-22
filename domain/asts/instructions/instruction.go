@@ -31,6 +31,21 @@ func createInstructionInternally(
 	return &out
 }
 
+// Validate validates an instruction
+func (obj *instruction) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
+	index := uint(0)
+	if _, ok := elementNameIndex[obj.block]; ok {
+		index = elementNameIndex[obj.block].index
+	}
+
+	elementNameIndex[obj.block] = BlockCount{
+		index:  index,
+		tokens: elementNameIndex[obj.block].tokens,
+	}
+
+	return obj.tokens.Validate(elementNameIndex)
+}
+
 // Block returns the block
 func (obj *instruction) Block() string {
 	return obj.block

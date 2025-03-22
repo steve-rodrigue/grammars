@@ -4,16 +4,12 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/balances"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/balances/selectors"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/balances/selectors/chains"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 )
 
-// NewBuilder creates a new builder
+// NewBuilder creates a new instruction builder
 func NewBuilder() Builder {
 	return createBuilder()
-}
-
-// NewInstructionBuilder creates a new instruction builder
-func NewInstructionBuilder() InstructionBuilder {
-	return createInstructionBuilder()
 }
 
 // NewTokensBuilder creates a new tokens builder
@@ -46,30 +42,18 @@ func NewConstantBuilder() ConstantBuilder {
 	return createConstantBuilder()
 }
 
-// Builder represents the instructions builder
+// Builder represents the instruction builder
 type Builder interface {
 	Create() Builder
-	WithList(list []Instruction) Builder
-	Now() (Instructions, error)
-}
-
-// Instructions represents instructions
-type Instructions interface {
-	List() []Instruction
-	Fetch(name string, idx uint) (Instruction, error)
-}
-
-// InstructionBuilder represents the instruction builder
-type InstructionBuilder interface {
-	Create() InstructionBuilder
-	WithBlock(block string) InstructionBuilder
-	WithLine(line uint) InstructionBuilder
-	WithTokens(tokens Tokens) InstructionBuilder
+	WithBlock(block string) Builder
+	WithLine(line uint) Builder
+	WithTokens(tokens Tokens) Builder
 	Now() (Instruction, error)
 }
 
 // Instruction represents an instruction
 type Instruction interface {
+	Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error)
 	Block() string
 	Line() uint
 	Tokens() Tokens
@@ -84,6 +68,7 @@ type TokensBuilder interface {
 
 // Tokens represents tokens
 type Tokens interface {
+	Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error)
 	List() []Token
 	Value() []byte
 	FetchAll(name string) ([]Token, error)
@@ -99,14 +84,18 @@ type TokenBuilder interface {
 	Create() TokenBuilder
 	WithName(name string) TokenBuilder
 	WithElements(elements Elements) TokenBuilder
+	WithUnique(unique uniques.Unique) TokenBuilder
 	Now() (Token, error)
 }
 
 // Token represents a token
 type Token interface {
+	Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error)
 	Name() string
 	Elements() Elements
 	Value() []byte
+	HasUnique() bool
+	Unique() uniques.Unique
 }
 
 // ElementsAdapter represents the elements adapter
@@ -124,6 +113,7 @@ type ElementsBuilder interface {
 
 // Elements represents elements
 type Elements interface {
+	Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error)
 	List() []Element
 	Fetch(idx uint) (Element, error)
 	Value() []byte
@@ -139,6 +129,7 @@ type ElementBuilder interface {
 
 // Element represents an element
 type Element interface {
+	Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error)
 	Name() string
 	Value() []byte
 	IsChainValid(chain chains.Chain) bool
@@ -161,4 +152,10 @@ type Constant interface {
 	Name() string
 	Value() []byte
 	IsChainValid(chain chains.Chain) bool
+}
+
+// BlockCount represents a block count
+type BlockCount struct {
+	index  uint
+	tokens map[string][]byte
 }

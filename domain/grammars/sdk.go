@@ -10,6 +10,7 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/cardinalities"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/reverses"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/suites"
 	"github.com/steve-care-software/grammars/domain/grammars/constants"
 	constant_tokens "github.com/steve-care-software/grammars/domain/grammars/constants/tokens"
@@ -99,6 +100,8 @@ const cardinalityOptional = "?"
 const tokenReversePrefix = "!"
 const tokenReverseEscapePrefix = "["
 const tokenReverseEscapeSuffix = "]"
+const tokenMustBeUnique = "#"
+const tokenMustNotBeUnique = "$"
 const tokenReference = "."
 const linesSeparator = "|"
 const lineSeparator = "-"
@@ -148,6 +151,7 @@ func NewAdapter() Adapter {
 	tokensBuilder := tokens.NewBuilder()
 	tokenBuilder := tokens.NewTokenBuilder()
 	reverseBuilder := reverses.NewBuilder()
+	uniqueBuilder := uniques.NewBuilder()
 	elementsBuilder := elements.NewBuilder()
 	elementBuilder := elements.NewElementBuilder()
 	rulesBuilder := rules.NewBuilder()
@@ -180,6 +184,7 @@ func NewAdapter() Adapter {
 		tokensBuilder,
 		tokenBuilder,
 		reverseBuilder,
+		uniqueBuilder,
 		elementsBuilder,
 		elementBuilder,
 		rulesBuilder,
@@ -207,6 +212,8 @@ func NewAdapter() Adapter {
 		[]byte(tokenReversePrefix)[0],
 		[]byte(tokenReverseEscapePrefix)[0],
 		[]byte(tokenReverseEscapeSuffix)[0],
+		[]byte(tokenMustBeUnique)[0],
+		[]byte(tokenMustNotBeUnique)[0],
 		[]byte(tokenReference)[0],
 		[]byte(ruleNameSeparator)[0],
 		[]byte(ruleNameValueSeparator)[0],

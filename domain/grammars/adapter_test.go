@@ -12,7 +12,7 @@ func TestAdapter_Success(t *testing.T) {
 		>.myRoot;
 		#.first.second.third;
 
-		myFirst: !.myFirst[1] .mySecond* .myThird+ .myFourth? .myFifth[1,]
+		myFirst: !.myFirst[1] .mySecond* .myThird+ .myFourth? .myFifth[1,] .another+
 					[
 						.myFirst[0][1]->MY_RULE[0][1] :
 							.myFirst[0][1]->MY_RULE[0][0]
@@ -34,6 +34,8 @@ func TestAdapter_Success(t *testing.T) {
 				 	firstTest:!"this is some value";
 					secondTest:!"this is some value";
 				 ;
+
+		another: ![._myConstant].QUOTE #.myFirst![._myConstant].QUOTE $._myConstant[2]![._myConstant].QUOTE $.MY_RULE![._myConstant].QUOTE;
 
 		mySecond: .myFirst[1] ._myConstant* .myThird+ .myFourth[2] .myFifth[1,]
 					[
@@ -76,8 +78,8 @@ func TestAdapter_Success(t *testing.T) {
 	}
 
 	retBlocks := retGrammar.Blocks().List()
-	if len(retBlocks) != 2 {
-		t.Errorf("the grammar was expected to contain %d block instances, %d returned", 2, len(retBlocks))
+	if len(retBlocks) != 3 {
+		t.Errorf("the grammar was expected to contain %d block instances, %d returned", 3, len(retBlocks))
 		return
 	}
 

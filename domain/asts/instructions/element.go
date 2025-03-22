@@ -29,6 +29,15 @@ func createElementInternally(
 	return &out
 }
 
+// Validate validates an element
+func (obj *element) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
+	if obj.IsConstant() {
+		return elementNameIndex, nil
+	}
+
+	return obj.instruction.Validate(elementNameIndex)
+}
+
 // Name returns the name
 func (obj *element) Name() string {
 	if obj.IsConstant() {

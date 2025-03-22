@@ -19,6 +19,21 @@ func createElements(
 	return &out
 }
 
+// Validate validates elements
+func (obj *elements) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
+	lastBlockNameIndex := map[string]BlockCount{}
+	for _, oneElement := range obj.list {
+		retBlockNameIndex, err := oneElement.Validate(lastBlockNameIndex)
+		if err != nil {
+			return nil, err
+		}
+
+		lastBlockNameIndex = retBlockNameIndex
+	}
+
+	return lastBlockNameIndex, nil
+}
+
 // List returns the list of element
 func (obj *elements) List() []Element {
 	return obj.list

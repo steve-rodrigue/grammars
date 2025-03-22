@@ -15,22 +15,20 @@ import (
 )
 
 type adapter struct {
-	grammarAdapter      grammars.Adapter
-	builder             Builder
-	instructionsBuilder instructions.Builder
-	instructionBuilder  instructions.InstructionBuilder
-	tokensBuilder       instructions.TokensBuilder
-	tokenBuilder        instructions.TokenBuilder
-	elementsBuilder     instructions.ElementsBuilder
-	elementBuilder      instructions.ElementBuilder
-	constantBuilder     instructions.ConstantBuilder
+	grammarAdapter     grammars.Adapter
+	builder            Builder
+	instructionBuilder instructions.Builder
+	tokensBuilder      instructions.TokensBuilder
+	tokenBuilder       instructions.TokenBuilder
+	elementsBuilder    instructions.ElementsBuilder
+	elementBuilder     instructions.ElementBuilder
+	constantBuilder    instructions.ConstantBuilder
 }
 
 func createAdapter(
 	grammarAdapter grammars.Adapter,
 	builder Builder,
-	instructionsBuilder instructions.Builder,
-	instructionBuilder instructions.InstructionBuilder,
+	instructionBuilder instructions.Builder,
 	tokensBuilder instructions.TokensBuilder,
 	tokenBuilder instructions.TokenBuilder,
 	elementsBuilder instructions.ElementsBuilder,
@@ -38,15 +36,14 @@ func createAdapter(
 	constantBuilder instructions.ConstantBuilder,
 ) Adapter {
 	out := adapter{
-		grammarAdapter:      grammarAdapter,
-		builder:             builder,
-		instructionsBuilder: instructionsBuilder,
-		instructionBuilder:  instructionBuilder,
-		tokensBuilder:       tokensBuilder,
-		tokenBuilder:        tokenBuilder,
-		elementsBuilder:     elementsBuilder,
-		elementBuilder:      elementBuilder,
-		constantBuilder:     constantBuilder,
+		grammarAdapter:     grammarAdapter,
+		builder:            builder,
+		instructionBuilder: instructionBuilder,
+		tokensBuilder:      tokensBuilder,
+		tokenBuilder:       tokenBuilder,
+		elementsBuilder:    elementsBuilder,
+		elementBuilder:     elementBuilder,
+		constantBuilder:    constantBuilder,
 	}
 
 	return &out

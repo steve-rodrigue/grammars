@@ -4,6 +4,7 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/cardinalities"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/reverses"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 )
 
 // NewBuilder creates a new builder
@@ -35,6 +36,7 @@ type TokenBuilder interface {
 	WithElement(element elements.Element) TokenBuilder
 	WithCardinality(cardinality cardinalities.Cardinality) TokenBuilder
 	WithReverse(reverse reverses.Reverse) TokenBuilder
+	WithUnique(unique uniques.Unique) TokenBuilder
 	Now() (Token, error)
 }
 
@@ -45,4 +47,6 @@ type Token interface {
 	Cardinality() cardinalities.Cardinality
 	HasReverse() bool
 	Reverse() reverses.Reverse
+	HasUnique() bool
+	Unique() uniques.Unique
 }
