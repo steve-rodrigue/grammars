@@ -63,6 +63,10 @@ func (app *builder) Now() (Unique, error) {
 		return nil, errors.New("the index is mandatory in order to build a Unique instance")
 	}
 
+	if app.mustBe && app.mustNot {
+		return nil, errors.New("the mustBe and mustNot cannot be both true while building a Unique instance")
+	}
+
 	if app.mustBe {
 		return createUniqueWithMustBe(app.element, *app.pIndex), nil
 	}
