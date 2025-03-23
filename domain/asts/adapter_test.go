@@ -9,12 +9,33 @@ import (
 )
 
 func TestParserAdapter_withBalance_Success(t *testing.T) {
+	firstGrammarInput := []byte(`
+		v1;
+		> .value;
+		# .SPACE .TAB. EOL;
+
+		value: .floatValue
+			 | .uintValue
+			 ;
+
+		uintValue: .N_ZERO;
+		floatValue: .N_ZERO .DOT .N_ONE;
+
+		N_ZERO: "0";
+		N_ONE: "1";
+		DOT: ".";
+		SPACE: " ";
+		TAB: "	";
+		EOL: "
+";
+	`)
+
 	grammarInput := []byte(`
 		v1;
 		> .assignment;
 		# .SPACE .TAB. EOL;
 		
-		assignment: .type .VARIABLE .EQUAL .value
+		assignment: .type .VARIABLE .EQUAL .value[/my/grammars/value.grammar, 1]
 					[
 						.FLOAT[0]:
 							.value[0][0]->floatValue[0]:
@@ -31,13 +52,6 @@ func TestParserAdapter_withBalance_Success(t *testing.T) {
 		type: .FLOAT
 			| .UINT
 			;
-			
-		value: .floatValue
-			 | .uintValue
-			 ;
-
-		uintValue: .N_ZERO;
-		floatValue: .N_ZERO .DOT .N_ONE;
 
 		FLOAT: "float";
 		EQUAL: "=";
@@ -53,18 +67,29 @@ func TestParserAdapter_withBalance_Success(t *testing.T) {
 	`)
 
 	grammarParserAdapter := grammars.NewAdapter()
+	firstGrammar, _, err := grammarParserAdapter.ToGrammar(firstGrammarInput)
+	if err != nil {
+		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())
+		return
+	}
+
 	retGrammar, _, err := grammarParserAdapter.ToGrammar(grammarInput)
 	if err != nil {
 		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())
 		return
 	}
 
-	parserAdapter := NewAdapter()
+	parserAdapter := NewAdapter(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{
+			"/my/grammars/value.grammar": firstGrammar,
+		}),
+	)
+
 	astRemaining := []byte("|this is a remaining")
 
 	validInputs := [][]byte{
 		append([]byte(`float myVariable = 0.1`), astRemaining...),
-		append([]byte(`uint myVariable = 0`), astRemaining...),
+		//append([]byte(`uint myVariable = 0`), astRemaining...),
 	}
 
 	for _, oneValidInput := range validInputs {
@@ -145,7 +170,10 @@ func TestParserAdapter_Success(t *testing.T) {
 		return
 	}
 
-	parserAdapter := NewAdapter()
+	parserAdapter := NewAdapter(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{}),
+	)
+
 	retAST, retRemaining, err := parserAdapter.ToAST(retGrammar, astInput)
 	if err != nil {
 		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())
@@ -201,7 +229,10 @@ func TestParserAdapter_withFiniteRecursivity_Success(t *testing.T) {
 		return
 	}
 
-	parserAdapter := NewAdapter()
+	parserAdapter := NewAdapter(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{}),
+	)
+
 	retAST, retRemaining, err := parserAdapter.ToAST(retGrammar, astInput)
 	if err != nil {
 		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())

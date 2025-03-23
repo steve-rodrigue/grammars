@@ -3,10 +3,14 @@ package queries
 import (
 	"bytes"
 	"testing"
+
+	"github.com/steve-care-software/grammars/domain/grammars"
 )
 
 func TestAdapter_Success(t *testing.T) {
-	adapter, err := NewAdapterFactory().Create()
+	adapter, err := NewAdapterFactory(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{}),
+	).Create()
 	if err != nil {
 		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())
 		return

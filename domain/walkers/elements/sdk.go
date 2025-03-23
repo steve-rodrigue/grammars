@@ -1,13 +1,19 @@
 package elements
 
 import (
+	"github.com/steve-care-software/grammars/domain/grammars"
 	"github.com/steve-care-software/grammars/domain/queries"
 	"github.com/steve-care-software/grammars/domain/walkers"
 )
 
 // NewAdapter creates a new adapter instance
-func NewAdapter() Adapter {
-	queryAdapter, _ := queries.NewAdapterFactory().Create()
+func NewAdapter(
+	grammarRepository grammars.Repository,
+) Adapter {
+	queryAdapter, _ := queries.NewAdapterFactory(
+		grammarRepository,
+	).Create()
+
 	builder := walkers.NewBuilder()
 	tokenListBuilder := walkers.NewTokenListBuilder()
 	selectedTokenListBuilder := walkers.NewSelectedTokenListBuilder()

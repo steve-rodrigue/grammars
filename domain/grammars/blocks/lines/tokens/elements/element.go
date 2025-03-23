@@ -1,32 +1,43 @@
 package elements
 
+import (
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements/references"
+)
+
 type element struct {
-	rule     string
-	block    string
-	constant string
+	rule      string
+	block     string
+	constant  string
+	reference references.Reference
 }
 
 func createElementWithRule(rule string) Element {
-	return createElementInternally(rule, "", "")
+	return createElementInternally(rule, "", "", nil)
 }
 
 func createElementWithBlock(block string) Element {
-	return createElementInternally("", block, "")
+	return createElementInternally("", block, "", nil)
 }
 
 func createElementWithConstant(constant string) Element {
-	return createElementInternally("", "", constant)
+	return createElementInternally("", "", constant, nil)
+}
+
+func createElementWithReference(reference references.Reference) Element {
+	return createElementInternally("", "", "", reference)
 }
 
 func createElementInternally(
 	rule string,
 	block string,
 	constant string,
+	reference references.Reference,
 ) Element {
 	out := element{
-		rule:     rule,
-		block:    block,
-		constant: constant,
+		rule:      rule,
+		block:     block,
+		constant:  constant,
+		reference: reference,
 	}
 
 	return &out
@@ -40,6 +51,10 @@ func (obj *element) Name() string {
 
 	if obj.IsConstant() {
 		return obj.constant
+	}
+
+	if obj.IsReference() {
+		return obj.reference.Name()
 	}
 
 	return obj.rule
@@ -73,4 +88,14 @@ func (obj *element) IsConstant() bool {
 // Constant returns the constant, if any
 func (obj *element) Constant() string {
 	return obj.constant
+}
+
+// IsReference returns true if there is a reference, false otherwise
+func (obj *element) IsReference() bool {
+	return obj.reference != nil
+}
+
+// Reference returns the reference, if any
+func (obj *element) Reference() references.Reference {
+	return obj.reference
 }

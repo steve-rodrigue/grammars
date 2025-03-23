@@ -1,4 +1,4 @@
-package instructions
+package asts
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/balances/selectors/chains"
 )
 
-type tokens struct {
+type tokensStr struct {
 	list []Token
 	mp   map[string][]Token
 }
@@ -18,7 +18,7 @@ func createTokens(
 	list []Token,
 	mp map[string][]Token,
 ) Tokens {
-	out := tokens{
+	out := tokensStr{
 		list: list,
 		mp:   mp,
 	}
@@ -27,7 +27,7 @@ func createTokens(
 }
 
 // Validate validates tokens
-func (obj *tokens) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
+func (obj *tokensStr) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
 	lastBlockNameIndex := map[string]BlockCount{}
 	for _, oneToken := range obj.list {
 		retBlockNameIndex, err := oneToken.Validate(lastBlockNameIndex)
@@ -42,12 +42,12 @@ func (obj *tokens) Validate(elementNameIndex map[string]BlockCount) (map[string]
 }
 
 // List returns the list of token
-func (obj *tokens) List() []Token {
+func (obj *tokensStr) List() []Token {
 	return obj.list
 }
 
 // Value returns the value of the tokens
-func (obj *tokens) Value() []byte {
+func (obj *tokensStr) Value() []byte {
 	output := []byte{}
 	for _, oneToken := range obj.list {
 		output = append(output, oneToken.Value()...)
@@ -57,7 +57,7 @@ func (obj *tokens) Value() []byte {
 }
 
 // FetchAll fetches all tokens by name
-func (obj *tokens) FetchAll(name string) ([]Token, error) {
+func (obj *tokensStr) FetchAll(name string) ([]Token, error) {
 	if ins, ok := obj.mp[name]; ok {
 		return ins, nil
 	}
@@ -67,7 +67,7 @@ func (obj *tokens) FetchAll(name string) ([]Token, error) {
 }
 
 // Fetch fetches a token by name and index
-func (obj *tokens) Fetch(name string, idx uint) (Token, error) {
+func (obj *tokensStr) Fetch(name string, idx uint) (Token, error) {
 	ins, err := obj.FetchAll(name)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (obj *tokens) Fetch(name string, idx uint) (Token, error) {
 }
 
 // Select executes a select query
-func (obj *tokens) Select(chain chains.Chain) ([]Token, Token, Element, error) {
+func (obj *tokensStr) Select(chain chains.Chain) ([]Token, Token, Element, error) {
 	elementName := chain.Element().Name()
 	if chain.HasToken() {
 		chainToken := chain.Token()
@@ -126,7 +126,7 @@ func (obj *tokens) Select(chain chains.Chain) ([]Token, Token, Element, error) {
 }
 
 // Search search for instruction/token by name
-func (obj *tokens) Search(name string, idx uint) (Token, error) {
+func (obj *tokensStr) Search(name string, idx uint) (Token, error) {
 	retToken, err := obj.Fetch(name, idx)
 	if err == nil {
 		return retToken, nil
@@ -135,12 +135,12 @@ func (obj *tokens) Search(name string, idx uint) (Token, error) {
 	for _, oneToken := range obj.list {
 		elementList := oneToken.Elements().List()
 		for _, oneElement := range elementList {
-			if oneElement.IsConstant() {
+			retToken, err := oneElement.Search(name, idx)
+			if err != nil {
 				continue
 			}
 
-			retToken, err := oneElement.Instruction().Tokens().Fetch(name, idx)
-			if err != nil {
+			if retToken == nil {
 				continue
 			}
 
@@ -153,7 +153,7 @@ func (obj *tokens) Search(name string, idx uint) (Token, error) {
 }
 
 // IsBalanceValid validates the tokens against the balance
-func (obj *tokens) IsBalanceValid(balance balances.Balance) bool {
+func (obj *tokensStr) IsBalanceValid(balance balances.Balance) bool {
 	list := balance.Lines()
 	for _, oneSelectors := range list {
 		operationIsValid := true
@@ -174,7 +174,7 @@ func (obj *tokens) IsBalanceValid(balance balances.Balance) bool {
 }
 
 // IsSelectorValid validates the tokens against the selector
-func (obj *tokens) IsSelectorValid(selector selectors.Selector) bool {
+func (obj *tokensStr) IsSelectorValid(selector selectors.Selector) bool {
 	chain := selector.Chain()
 	isChainValid := obj.IsChainValid(chain)
 	if selector.IsNot() {
@@ -185,7 +185,7 @@ func (obj *tokens) IsSelectorValid(selector selectors.Selector) bool {
 }
 
 // IsChainValid validates the tokens against the chain
-func (obj *tokens) IsChainValid(chain chains.Chain) bool {
+func (obj *tokensStr) IsChainValid(chain chains.Chain) bool {
 	name := chain.Element().Name()
 	if chain.HasToken() {
 		token := chain.Token()

@@ -2,17 +2,24 @@ package applications
 
 import (
 	"github.com/steve-care-software/grammars/domain/asts"
-	"github.com/steve-care-software/grammars/domain/asts/instructions"
 	"github.com/steve-care-software/grammars/domain/grammars"
 	"github.com/steve-care-software/grammars/domain/walkers/elements"
 )
 
 // NewBuilder creates a new application builder
-func NewBuilder() Builder {
-	elementsAdapter := instructions.NewElementsAdapter()
-	astAdapter := asts.NewAdapter()
-	elementAdapter := elements.NewAdapter()
-	tokensBuilder := instructions.NewTokensBuilder()
+func NewBuilder(
+	grammarRepository grammars.Repository,
+) Builder {
+	elementsAdapter := asts.NewElementsAdapter()
+	astAdapter := asts.NewAdapter(
+		grammarRepository,
+	)
+
+	elementAdapter := elements.NewAdapter(
+		grammarRepository,
+	)
+
+	tokensBuilder := asts.NewTokensBuilder()
 	return createBuilder(
 		elementsAdapter,
 		astAdapter,

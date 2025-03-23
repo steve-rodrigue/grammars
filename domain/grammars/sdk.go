@@ -9,6 +9,7 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/cardinalities"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements/references"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/reverses"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/suites"
@@ -128,6 +129,11 @@ const selectorOperatorXor = "<>"
 const openParenthesis = "("
 const closeParenthesis = ")"
 
+const referenceBegin = "["
+const referenceEnd = "]"
+const referencePathSeparator = "/"
+const referenceElementSeparator = ","
+
 // NewAdapter creates a new adapter
 func NewAdapter() Adapter {
 	grammarBuilder := NewBuilder()
@@ -157,6 +163,7 @@ func NewAdapter() Adapter {
 	rulesBuilder := rules.NewBuilder()
 	ruleBuilder := rules.NewRuleBuilder()
 	cardinalityBuilder := cardinalities.NewBuilder()
+	referenceBuilder := references.NewBuilder()
 	blockNameAfterFirstByteCharacters := createBlockNameCharacters()
 	possibleLowerCaseLetters := createPossibleLowerCaseLetters()
 	possibleUpperCaseLetters := createPossibleUpperCaseLetters()
@@ -190,6 +197,7 @@ func NewAdapter() Adapter {
 		rulesBuilder,
 		ruleBuilder,
 		cardinalityBuilder,
+		referenceBuilder,
 		[]byte(filterBytes),
 		[]byte(suiteSeparatorPrefix),
 		blockNameAfterFirstByteCharacters,
@@ -233,6 +241,10 @@ func NewAdapter() Adapter {
 		[]byte(selectorOperatorXor),
 		[]byte(openParenthesis)[0],
 		[]byte(closeParenthesis)[0],
+		[]byte(referenceBegin)[0],
+		[]byte(referenceEnd)[0],
+		[]byte(referencePathSeparator)[0],
+		[]byte(referenceElementSeparator)[0],
 	)
 }
 
@@ -245,6 +257,15 @@ func NewBuilder() Builder {
 type Adapter interface {
 	// ToGrammar takes the input and converts it to a grammar instance and the remaining data
 	ToGrammar(input []byte) (Grammar, []byte, error)
+}
+
+// NewRepositoryMemory creates a new reposiotry memory
+func NewRepositoryMemory(
+	grammars map[string]Grammar,
+) Repository {
+	return createRepositoryMemory(
+		grammars,
+	)
 }
 
 // Builder represents the grammar builder
@@ -269,4 +290,9 @@ type Grammar interface {
 	Omissions() elements.Elements
 	HasConstants() bool
 	Constants() constants.Constants
+}
+
+// Repository represents a Grammar repository
+type Repository interface {
+	Retrieve(reference references.Reference) (Grammar, error)
 }

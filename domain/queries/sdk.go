@@ -8,9 +8,13 @@ import (
 )
 
 // NewAdapterFactory creates a new adapter factory
-func NewAdapterFactory() AdapterFactory {
+func NewAdapterFactory(
+	grammarRepository grammars.Repository,
+) AdapterFactory {
 	grammarAdapter := grammars.NewAdapter()
-	astAdapter := asts.NewAdapter()
+	astAdapter := asts.NewAdapter(
+		grammarRepository,
+	)
 	builder := NewBuilder()
 	grammarElementBuilder := elements.NewElementBuilder()
 	chainBuilder := chains.NewBuilder()

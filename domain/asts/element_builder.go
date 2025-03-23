@@ -1,4 +1,4 @@
-package instructions
+package asts
 
 import (
 	"errors"
@@ -7,12 +7,14 @@ import (
 type elementBuilder struct {
 	constant    Constant
 	instruction Instruction
+	ast         AST
 }
 
 func createElementBuilder() ElementBuilder {
 	out := elementBuilder{
 		constant:    nil,
 		instruction: nil,
+		ast:         nil,
 	}
 
 	return &out
@@ -35,6 +37,12 @@ func (app *elementBuilder) WithInstruction(instruction Instruction) ElementBuild
 	return app
 }
 
+// WithAST adds an ast to the elementBuilder
+func (app *elementBuilder) WithAST(ast AST) ElementBuilder {
+	app.ast = ast
+	return app
+}
+
 // Now builds a new Element instance
 func (app *elementBuilder) Now() (Element, error) {
 	if app.constant != nil {
@@ -43,6 +51,10 @@ func (app *elementBuilder) Now() (Element, error) {
 
 	if app.instruction != nil {
 		return createElementWithInstruction(app.instruction), nil
+	}
+
+	if app.ast != nil {
+		return createElementWithAST(app.ast), nil
 	}
 
 	return nil, errors.New("the Element is invalid")

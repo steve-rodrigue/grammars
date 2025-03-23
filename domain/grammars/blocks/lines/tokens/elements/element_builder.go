@@ -1,18 +1,24 @@
 package elements
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements/references"
+)
 
 type elementBuilder struct {
-	rule     string
-	block    string
-	constant string
+	rule      string
+	block     string
+	constant  string
+	reference references.Reference
 }
 
 func createElementBuilder() ElementBuilder {
 	out := elementBuilder{
-		rule:     "",
-		block:    "",
-		constant: "",
+		rule:      "",
+		block:     "",
+		constant:  "",
+		reference: nil,
 	}
 
 	return &out
@@ -41,6 +47,12 @@ func (app *elementBuilder) WithConstant(constant string) ElementBuilder {
 	return app
 }
 
+// WithReference adds a reference to the builder
+func (app *elementBuilder) WithReference(reference references.Reference) ElementBuilder {
+	app.reference = reference
+	return app
+}
+
 // Now builds a new Element
 func (app *elementBuilder) Now() (Element, error) {
 	if app.rule != "" {
@@ -53,6 +65,10 @@ func (app *elementBuilder) Now() (Element, error) {
 
 	if app.constant != "" {
 		return createElementWithConstant(app.constant), nil
+	}
+
+	if app.reference != nil {
+		return createElementWithReference(app.reference), nil
 	}
 
 	return nil, errors.New("the Element is invalid")

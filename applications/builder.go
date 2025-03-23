@@ -2,24 +2,23 @@ package applications
 
 import (
 	"github.com/steve-care-software/grammars/domain/asts"
-	"github.com/steve-care-software/grammars/domain/asts/instructions"
 	"github.com/steve-care-software/grammars/domain/walkers"
 	"github.com/steve-care-software/grammars/domain/walkers/elements"
 )
 
 type builder struct {
-	elementsAdapter instructions.ElementsAdapter
+	elementsAdapter asts.ElementsAdapter
 	astAdapter      asts.Adapter
 	elementAdapter  elements.Adapter
-	tokensBuilder   instructions.TokensBuilder
+	tokensBuilder   asts.TokensBuilder
 	pElement        *elements.Element
 }
 
 func createBuilder(
-	elementsAdapter instructions.ElementsAdapter,
+	elementsAdapter asts.ElementsAdapter,
 	astAdapter asts.Adapter,
 	elementAdapter elements.Adapter,
-	tokensBuilder instructions.TokensBuilder,
+	tokensBuilder asts.TokensBuilder,
 ) Builder {
 	out := builder{
 		elementsAdapter: elementsAdapter,

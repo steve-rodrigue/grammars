@@ -5,23 +5,22 @@ import (
 	"fmt"
 
 	"github.com/steve-care-software/grammars/domain/asts"
-	"github.com/steve-care-software/grammars/domain/asts/instructions"
 	"github.com/steve-care-software/grammars/domain/grammars"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/suites"
 	"github.com/steve-care-software/grammars/domain/walkers"
 )
 
 type application struct {
-	elementsAdapter instructions.ElementsAdapter
+	elementsAdapter asts.ElementsAdapter
 	astAdapter      asts.Adapter
-	tokensBuilder   instructions.TokensBuilder
+	tokensBuilder   asts.TokensBuilder
 	walker          walkers.Walker
 }
 
 func createApplication(
-	elementsAdapter instructions.ElementsAdapter,
+	elementsAdapter asts.ElementsAdapter,
 	astAdapter asts.Adapter,
-	tokensBuilder instructions.TokensBuilder,
+	tokensBuilder asts.TokensBuilder,
 	walker walkers.Walker,
 ) Application {
 	out := application{
@@ -53,7 +52,7 @@ func (app *application) Execute(input []byte, grammar grammars.Grammar) (any, []
 	return retIns, retRemaining, nil
 }
 
-func (app *application) element(element instructions.Element, ins walkers.Walker) (any, error) {
+func (app *application) element(element asts.Element, ins walkers.Walker) (any, error) {
 	if element.IsConstant() {
 		value := element.Constant().Value()
 		return app.callElementFn(value, ins.Fn())
@@ -84,7 +83,7 @@ func (app *application) callElementFn(value any, fn walkers.ElementFn) (any, err
 
 func (app *application) tokenList(
 	elementName string,
-	tokensList []instructions.Token,
+	tokensList []asts.Token,
 	ins walkers.TokenList,
 ) (any, error) {
 	output := map[string][]any{}
@@ -110,7 +109,7 @@ func (app *application) tokenList(
 	return ins.Fn()(elementName, output)
 }
 
-func (app *application) token(token instructions.Token, ins walkers.Token) (any, error) {
+func (app *application) token(token asts.Token, ins walkers.Token) (any, error) {
 	output := []any{}
 	elementsList := token.Elements().List()
 	for _, oneElement := range elementsList {
@@ -132,7 +131,7 @@ func (app *application) token(token instructions.Token, ins walkers.Token) (any,
 
 func (app *application) selectedTokenList(
 	elementName string,
-	tokensList []instructions.Token,
+	tokensList []asts.Token,
 	ins walkers.SelectedTokenList,
 ) (any, error) {
 	tokensIns, err := app.tokensBuilder.Create().
@@ -143,8 +142,8 @@ func (app *application) selectedTokenList(
 		return nil, err
 	}
 
-	var tokenIns instructions.Token
-	var elementIns instructions.Element
+	var tokenIns asts.Token
+	var elementIns asts.Element
 	if ins.HasChain() {
 		chain := ins.Chain()
 		retTokensList, retToken, retElement, err := tokensIns.Select(chain)
@@ -198,9 +197,9 @@ func (app *application) selectedTokenList(
 
 func (app *application) node(
 	elementName string,
-	tokens instructions.Tokens,
-	token instructions.Token,
-	element instructions.Element,
+	tokens asts.Tokens,
+	token asts.Token,
+	element asts.Element,
 	ins walkers.Node,
 ) (any, error) {
 	if tokens != nil {
@@ -289,7 +288,7 @@ func (app *application) interpretSuite(
 }
 
 func (app *application) interpretInstruction(
-	instruction instructions.Instruction,
+	instruction asts.Instruction,
 ) error {
 	tokens := instruction.Tokens()
 	return app.interpretTokens(
@@ -298,7 +297,7 @@ func (app *application) interpretInstruction(
 }
 
 func (app *application) interpretTokens(
-	tokens instructions.Tokens,
+	tokens asts.Tokens,
 ) error {
 	list := tokens.List()
 	for _, oneToken := range list {
@@ -316,8 +315,8 @@ func (app *application) interpretTokens(
 }
 
 func (app *application) interpretToken(
-	currentTokens instructions.Tokens,
-	token instructions.Token,
+	currentTokens asts.Tokens,
+	token asts.Token,
 ) error {
 	elements := token.Elements()
 	return app.interpretElements(
@@ -327,8 +326,8 @@ func (app *application) interpretToken(
 }
 
 func (app *application) interpretElements(
-	currentTokens instructions.Tokens,
-	elements instructions.Elements,
+	currentTokens asts.Tokens,
+	elements asts.Elements,
 ) error {
 	list := elements.List()
 	for _, oneElement := range list {
@@ -346,8 +345,8 @@ func (app *application) interpretElements(
 }
 
 func (app *application) interpretElement(
-	currentTokens instructions.Tokens,
-	element instructions.Element,
+	currentTokens asts.Tokens,
+	element asts.Element,
 ) error {
 	if element.IsConstant() {
 		return nil

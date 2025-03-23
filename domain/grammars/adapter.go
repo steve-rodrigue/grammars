@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"path/filepath"
 	"strconv"
 
 	"github.com/steve-care-software/grammars/domain/grammars/blocks"
@@ -15,6 +16,7 @@ import (
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/cardinalities"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
+	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements/references"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/reverses"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/uniques"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/suites"
@@ -52,6 +54,7 @@ type adapter struct {
 	rulesBuilder                      rules.Builder
 	ruleBuilder                       rules.RuleBuilder
 	cardinalityBuilder                cardinalities.Builder
+	referenceBuilder                  references.Builder
 	filterBytes                       []byte
 	suiteSeparatorPrefix              []byte
 	blockNameAfterFirstByteCharacters []byte
@@ -95,6 +98,10 @@ type adapter struct {
 	selectorOperatorXor               []byte
 	openParenthesis                   byte
 	closeParenthesis                  byte
+	referenceBegin                    byte
+	referenceEnd                      byte
+	referencePathSeparator            byte
+	referenceElementSeparator         byte
 }
 
 func createAdapter(
@@ -125,6 +132,7 @@ func createAdapter(
 	rulesBuilder rules.Builder,
 	ruleBuilder rules.RuleBuilder,
 	cardinalityBuilder cardinalities.Builder,
+	referenceBuilder references.Builder,
 	filterBytes []byte,
 	suiteSeparatorPrefix []byte,
 	blockNameAfterFirstByteCharacters []byte,
@@ -168,6 +176,10 @@ func createAdapter(
 	selectorOperatorXor []byte,
 	openParenthesis byte,
 	closeParenthesis byte,
+	referenceBegin byte,
+	referenceEnd byte,
+	referencePathSeparator byte,
+	referenceElementSeparator byte,
 ) Adapter {
 	out := adapter{
 		grammarBuilder:                    grammarBuilder,
@@ -197,6 +209,7 @@ func createAdapter(
 		rulesBuilder:                      rulesBuilder,
 		ruleBuilder:                       ruleBuilder,
 		cardinalityBuilder:                cardinalityBuilder,
+		referenceBuilder:                  referenceBuilder,
 		filterBytes:                       filterBytes,
 		suiteSeparatorPrefix:              suiteSeparatorPrefix,
 		blockNameAfterFirstByteCharacters: blockNameAfterFirstByteCharacters,
@@ -240,6 +253,10 @@ func createAdapter(
 		selectorOperatorXor:               selectorOperatorXor,
 		openParenthesis:                   openParenthesis,
 		closeParenthesis:                  closeParenthesis,
+		referenceBegin:                    referenceBegin,
+		referenceEnd:                      referenceEnd,
+		referencePathSeparator:            referencePathSeparator,
+		referenceElementSeparator:         referenceElementSeparator,
 	}
 
 	return &out
@@ -1086,9 +1103,26 @@ func (app *adapter) bytesToElementReference(input []byte) (elements.Element, []b
 }
 
 func (app *adapter) bytesToElement(input []byte) (elements.Element, []byte, error) {
-	// try to match a rule
+	retReference, retRemaining, err := app.bytesToReference(input)
+	if err != nil {
+		return app.bytesToElementWithoutReference(input)
+	}
+
+	element, err := app.elementBuilder.Create().WithReference(retReference).Now()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return element, filterPrefix(retRemaining, app.filterBytes), nil
+}
+
+func (app *adapter) bytesToElementWithoutReference(input []byte) (elements.Element, []byte, error) {
 	elementBuilder := app.elementBuilder.Create()
-	ruleName, retRemaining, err := app.bytesToRuleName(input)
+
+	// try to match a reference:
+	remaining := input
+	// try to match a rule
+	ruleName, retRuleRemaining, err := app.bytesToRuleName(input)
 	if err != nil {
 		// there is no rule, so try to match a block
 		blockName, retBlockRemaining, err := app.bytesToBlockName(input)
@@ -1100,13 +1134,15 @@ func (app *adapter) bytesToElement(input []byte) (elements.Element, []byte, erro
 			}
 
 			elementBuilder.WithConstant(string(constantName))
-			retRemaining = retConstantRemaining
+			remaining = retConstantRemaining
+
 		} else {
 			elementBuilder.WithBlock(string(blockName))
-			retRemaining = retBlockRemaining
+			remaining = retBlockRemaining
 		}
 	} else {
 		elementBuilder.WithRule(ruleName)
+		remaining = retRuleRemaining
 	}
 
 	element, err := elementBuilder.Now()
@@ -1114,7 +1150,60 @@ func (app *adapter) bytesToElement(input []byte) (elements.Element, []byte, erro
 		return nil, nil, err
 	}
 
-	return element, filterPrefix(retRemaining, app.filterBytes), nil
+	return element, filterPrefix(remaining, app.filterBytes), nil
+}
+
+func (app *adapter) bytesToReference(input []byte) (references.Reference, []byte, error) {
+	retName, retRemaining, err := app.bytesToBlockName(input)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	remaining := filterPrefix(retRemaining, app.filterBytes)
+	if len(remaining) <= 0 {
+		return nil, nil, errors.New("the token was expected to contain at least 1 byte")
+	}
+
+	if remaining[0] != app.referenceBegin {
+		return nil, nil, errors.New("the token was expected to contain the referenceBegin byte at its prefix")
+	}
+
+	remaining = remaining[1:]
+	endPathPos := bytes.Index(remaining, []byte{
+		app.referenceElementSeparator,
+	})
+
+	if endPathPos == -1 {
+		return nil, nil, errors.New("the token was expected to contain the referenceElementSeparator byte")
+	}
+
+	pathStr := string(remaining[:endPathPos])
+	path := filepath.SplitList(pathStr)
+	remaining = filterPrefix(remaining[endPathPos+1:], app.filterBytes)
+	if len(remaining) <= 0 {
+		return nil, nil, errors.New("the token was expected to contain at least 1 byte")
+	}
+
+	refEndPos := bytes.Index(remaining, []byte{
+		app.referenceEnd,
+	})
+
+	if refEndPos == -1 {
+		return nil, nil, errors.New("the token was expected to contain the referenceEnd byte")
+	}
+
+	version, err := strconv.Atoi(string(remaining[:refEndPos]))
+	if err != nil {
+		str := fmt.Sprintf("the reference (path: %s) does not contain a valid version, it should be a positive number", pathStr)
+		return nil, nil, errors.New(str)
+	}
+
+	retIns, err := app.referenceBuilder.Create().WithPath(path).WithName(retName).WithVersion(uint(version)).Now()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return retIns, remaining[refEndPos+1:], nil
 }
 
 func (app *adapter) bytesToCardinality(input []byte) (cardinalities.Cardinality, []byte, error) {

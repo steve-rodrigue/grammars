@@ -12,7 +12,7 @@ func TestAdapter_Success(t *testing.T) {
 		>.myRoot;
 		#.first.second.third;
 
-		myFirst: !.myFirst[1] .mySecond* .myThird+ .myFourth? .myFifth[1,] .another+
+		myFirst: !.myFirst[1] .mySecond* .myThird+ .myFourth? .myFifth[1,] .another+ .myValue[/my/path/to/grammar.grammar, 1]
 					[
 						.myFirst[0][1]->MY_RULE[0][1] :
 							.myFirst[0][1]->MY_RULE[0][0]

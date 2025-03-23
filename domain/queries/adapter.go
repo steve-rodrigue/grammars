@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/steve-care-software/grammars/domain/asts"
-	"github.com/steve-care-software/grammars/domain/asts/instructions"
 	"github.com/steve-care-software/grammars/domain/grammars"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/balances/selectors/chains"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements"
@@ -60,7 +59,7 @@ func (app *adapter) ToQuery(input []byte) (Query, []byte, error) {
 	return retQuery, retRemaining, nil
 }
 
-func (app *adapter) query(element instructions.Element) (Query, error) {
+func (app *adapter) query(element asts.Element) (Query, error) {
 	tokens, err := app.elementToTokens(element)
 	if err != nil {
 		return nil, err
@@ -93,7 +92,7 @@ func (app *adapter) query(element instructions.Element) (Query, error) {
 		Now()
 }
 
-func (app *adapter) chainLine(token instructions.Token) (chains.Chain, error) {
+func (app *adapter) chainLine(token asts.Token) (chains.Chain, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return nil, err
@@ -107,7 +106,7 @@ func (app *adapter) chainLine(token instructions.Token) (chains.Chain, error) {
 	return app.chain(retChainToken)
 }
 
-func (app *adapter) chain(token instructions.Token) (chains.Chain, error) {
+func (app *adapter) chain(token asts.Token) (chains.Chain, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return nil, err
@@ -137,7 +136,7 @@ func (app *adapter) chain(token instructions.Token) (chains.Chain, error) {
 	return builder.Now()
 }
 
-func (app *adapter) token(token instructions.Token) (chains.Token, error) {
+func (app *adapter) token(token asts.Token) (chains.Token, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return nil, err
@@ -167,7 +166,7 @@ func (app *adapter) token(token instructions.Token) (chains.Token, error) {
 	return builder.Now()
 }
 
-func (app *adapter) element(token instructions.Token) (chains.Element, error) {
+func (app *adapter) element(token asts.Token) (chains.Element, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return nil, err
@@ -207,7 +206,7 @@ func (app *adapter) element(token instructions.Token) (chains.Element, error) {
 	return builder.Now()
 }
 
-func (app *adapter) grammarElement(token instructions.Token) (elements.Element, error) {
+func (app *adapter) grammarElement(token asts.Token) (elements.Element, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return nil, err
@@ -232,7 +231,7 @@ func (app *adapter) grammarElement(token instructions.Token) (elements.Element, 
 	return builder.Now()
 }
 
-func (app *adapter) head(token instructions.Token) (uint, string, error) {
+func (app *adapter) head(token asts.Token) (uint, string, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return 0, "", err
@@ -261,7 +260,7 @@ func (app *adapter) head(token instructions.Token) (uint, string, error) {
 	return uint(versionNumber), nameStr, nil
 }
 
-func (app *adapter) nameInstruction(token instructions.Token) (string, error) {
+func (app *adapter) nameInstruction(token asts.Token) (string, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return "", err
@@ -275,7 +274,7 @@ func (app *adapter) nameInstruction(token instructions.Token) (string, error) {
 	return string(retNameToken.Value()), nil
 }
 
-func (app *adapter) numbersInstruction(token instructions.Token) (int, error) {
+func (app *adapter) numbersInstruction(token asts.Token) (int, error) {
 	tokens, err := app.tokenToFirstInstructionTokens(token)
 	if err != nil {
 		return 0, err
@@ -290,7 +289,7 @@ func (app *adapter) numbersInstruction(token instructions.Token) (int, error) {
 	return strconv.Atoi(string(retBytes))
 }
 
-func (app *adapter) tokenToFirstInstructionTokens(token instructions.Token) (instructions.Tokens, error) {
+func (app *adapter) tokenToFirstInstructionTokens(token asts.Token) (asts.Tokens, error) {
 	retElement, err := token.Elements().Fetch(0)
 	if err != nil {
 		return nil, err
@@ -299,7 +298,7 @@ func (app *adapter) tokenToFirstInstructionTokens(token instructions.Token) (ins
 	return app.elementToTokens(retElement)
 }
 
-func (app *adapter) elementToTokens(element instructions.Element) (instructions.Tokens, error) {
+func (app *adapter) elementToTokens(element asts.Element) (asts.Tokens, error) {
 	if element.IsConstant() {
 		str := fmt.Sprintf("the element (name: %s) was expected to contain an Instruction", element.Name())
 		return nil, errors.New(str)

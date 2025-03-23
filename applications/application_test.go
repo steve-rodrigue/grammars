@@ -272,7 +272,9 @@ func TestApplication_withSuites_execute_Success(t *testing.T) {
 		return
 	}
 
-	application, err := NewBuilder().Create().WithElement(sequence).Now()
+	application, err := NewBuilder(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{}),
+	).Create().WithElement(sequence).Now()
 	if err != nil {
 		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())
 		return
@@ -712,7 +714,9 @@ func TestApplication_grammar_withSuites_Success(t *testing.T) {
 		return
 	}
 
-	application, _ := NewBuilder().Create().Now()
+	application, _ := NewBuilder(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{}),
+	).Create().Now()
 	err = application.Suites(retGrammar)
 	if err != nil {
 		t.Errorf("there was an error while running the grammar test suites: %s", err.Error())

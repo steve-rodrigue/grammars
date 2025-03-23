@@ -1,5 +1,7 @@
 package elements
 
+import "github.com/steve-care-software/grammars/domain/grammars/blocks/lines/tokens/elements/references"
+
 // NewBuilder creates a new builder
 func NewBuilder() Builder {
 	return createBuilder()
@@ -29,6 +31,7 @@ type ElementBuilder interface {
 	WithRule(rule string) ElementBuilder
 	WithBlock(block string) ElementBuilder
 	WithConstant(constant string) ElementBuilder
+	WithReference(reference references.Reference) ElementBuilder
 	Now() (Element, error)
 }
 
@@ -41,4 +44,6 @@ type Element interface {
 	Block() string
 	IsConstant() bool
 	Constant() string
+	IsReference() bool
+	Reference() references.Reference
 }

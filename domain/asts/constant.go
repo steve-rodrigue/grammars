@@ -1,4 +1,4 @@
-package instructions
+package asts
 
 import "github.com/steve-care-software/grammars/domain/grammars/blocks/lines/balances/selectors/chains"
 

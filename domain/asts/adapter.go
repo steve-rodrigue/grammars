@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/steve-care-software/grammars/domain/asts/instructions"
 	"github.com/steve-care-software/grammars/domain/grammars"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks"
 	"github.com/steve-care-software/grammars/domain/grammars/blocks/lines"
@@ -15,27 +14,30 @@ import (
 )
 
 type adapter struct {
+	grammarRepository  grammars.Repository
 	grammarAdapter     grammars.Adapter
 	builder            Builder
-	instructionBuilder instructions.Builder
-	tokensBuilder      instructions.TokensBuilder
-	tokenBuilder       instructions.TokenBuilder
-	elementsBuilder    instructions.ElementsBuilder
-	elementBuilder     instructions.ElementBuilder
-	constantBuilder    instructions.ConstantBuilder
+	instructionBuilder InstructionBuilder
+	tokensBuilder      TokensBuilder
+	tokenBuilder       TokenBuilder
+	elementsBuilder    ElementsBuilder
+	elementBuilder     ElementBuilder
+	constantBuilder    ConstantBuilder
 }
 
 func createAdapter(
+	grammarRepository grammars.Repository,
 	grammarAdapter grammars.Adapter,
 	builder Builder,
-	instructionBuilder instructions.Builder,
-	tokensBuilder instructions.TokensBuilder,
-	tokenBuilder instructions.TokenBuilder,
-	elementsBuilder instructions.ElementsBuilder,
-	elementBuilder instructions.ElementBuilder,
-	constantBuilder instructions.ConstantBuilder,
+	instructionBuilder InstructionBuilder,
+	tokensBuilder TokensBuilder,
+	tokenBuilder TokenBuilder,
+	elementsBuilder ElementsBuilder,
+	elementBuilder ElementBuilder,
+	constantBuilder ConstantBuilder,
 ) Adapter {
 	out := adapter{
+		grammarRepository:  grammarRepository,
 		grammarAdapter:     grammarAdapter,
 		builder:            builder,
 		instructionBuilder: instructionBuilder,
@@ -112,7 +114,7 @@ func (app *adapter) toInstruction(
 	block blocks.Block,
 	input []byte,
 	filterForOmission bool,
-) (instructions.Instruction, []byte, error) {
+) (Instruction, []byte, error) {
 	name := block.Name()
 	lines := block.Lines().List()
 	for idx, oneLine := range lines {
@@ -177,8 +179,8 @@ func (app *adapter) toTokens(
 	line lines.Line,
 	input []byte,
 	filterForOmission bool,
-) (instructions.Tokens, []byte, error) {
-	output := []instructions.Token{}
+) (Tokens, []byte, error) {
+	output := []Token{}
 	list := line.Tokens().List()
 	remaining := input
 	for idx, oneToken := range list {
@@ -218,12 +220,12 @@ func (app *adapter) toToken(
 	token tokens.Token,
 	input []byte,
 	filterForOmission bool,
-) (instructions.Token, []byte, error) {
+) (Token, []byte, error) {
 	remaining := input
 	cardinality := token.Cardinality()
 	hasMax := cardinality.HasMax()
 	pMax := cardinality.Max()
-	elementsList := []instructions.Element{}
+	elementsList := []Element{}
 	cpt := uint(0)
 	for {
 		// max has been reached
@@ -367,7 +369,7 @@ func (app *adapter) toElement(
 	element elements.Element,
 	input []byte,
 	filterForOmission bool,
-) (instructions.Element, []byte, error) {
+) (Element, []byte, error) {
 	remaining := input
 	if filterForOmission {
 		remaining = app.filterOmissions(
@@ -441,6 +443,22 @@ func (app *adapter) toElement(
 		}
 
 		builder.WithConstant(constant)
+		remaining = retRemaining
+	}
+
+	if element.IsReference() {
+		reference := element.Reference()
+		retGrammar, err := app.grammarRepository.Retrieve(reference)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		retAST, retRemaining, err := app.ToAST(retGrammar, remaining)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		builder.WithAST(retAST)
 		remaining = retRemaining
 	}
 

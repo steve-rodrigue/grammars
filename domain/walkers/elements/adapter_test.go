@@ -3,6 +3,8 @@ package elements
 import (
 	"fmt"
 	"testing"
+
+	"github.com/steve-care-software/grammars/domain/grammars"
 )
 
 type testValue struct {
@@ -56,7 +58,10 @@ func TestAdapter_Success(t *testing.T) {
 		},
 	}
 
-	adapter := NewAdapter()
+	adapter := NewAdapter(
+		grammars.NewRepositoryMemory(map[string]grammars.Grammar{}),
+	)
+
 	retWalker, err := adapter.ToWalker(element)
 	if err != nil {
 		t.Errorf("the error was expected to be nil, error returned: %s", err.Error())

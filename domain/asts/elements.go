@@ -1,18 +1,18 @@
-package instructions
+package asts
 
 import (
 	"errors"
 	"fmt"
 )
 
-type elements struct {
+type elementsStr struct {
 	list []Element
 }
 
 func createElements(
 	list []Element,
 ) Elements {
-	out := elements{
+	out := elementsStr{
 		list: list,
 	}
 
@@ -20,7 +20,7 @@ func createElements(
 }
 
 // Validate validates elements
-func (obj *elements) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
+func (obj *elementsStr) Validate(elementNameIndex map[string]BlockCount) (map[string]BlockCount, error) {
 	lastBlockNameIndex := map[string]BlockCount{}
 	for _, oneElement := range obj.list {
 		retBlockNameIndex, err := oneElement.Validate(lastBlockNameIndex)
@@ -35,12 +35,12 @@ func (obj *elements) Validate(elementNameIndex map[string]BlockCount) (map[strin
 }
 
 // List returns the list of element
-func (obj *elements) List() []Element {
+func (obj *elementsStr) List() []Element {
 	return obj.list
 }
 
 // Fetch fetches an element by index
-func (obj *elements) Fetch(idx uint) (Element, error) {
+func (obj *elementsStr) Fetch(idx uint) (Element, error) {
 	length := len(obj.list)
 	if idx >= uint(length) {
 		str := fmt.Sprintf("the provided index (%d) must be smaller than the length (%d) of the list", idx, length)
@@ -51,7 +51,7 @@ func (obj *elements) Fetch(idx uint) (Element, error) {
 }
 
 // Value returns the value of the elements
-func (obj *elements) Value() []byte {
+func (obj *elementsStr) Value() []byte {
 	output := []byte{}
 	for _, oneElement := range obj.list {
 		output = append(output, oneElement.Value()...)

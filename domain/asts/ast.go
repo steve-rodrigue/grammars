@@ -1,21 +1,17 @@
 package asts
 
-import (
-	"github.com/steve-care-software/grammars/domain/asts/instructions"
-)
-
 type ast struct {
-	root instructions.Element
+	root Element
 }
 
 func createAST(
-	root instructions.Element,
+	root Element,
 ) AST {
 	return createASTInternally(root)
 }
 
 func createASTInternally(
-	root instructions.Element,
+	root Element,
 ) AST {
 	out := ast{
 		root: root,
@@ -25,6 +21,6 @@ func createASTInternally(
 }
 
 // Root returns the root
-func (obj *ast) Root() instructions.Element {
+func (obj *ast) Root() Element {
 	return obj.root
 }
