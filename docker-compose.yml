@@ -1,0 +1,14 @@
+services:
+  dgraph:
+    image: dgraph/standalone:latest
+    container_name: dgraph
+    ports:
+      - "8080:8080"     # HTTP API (GraphQL+/DQL)
+      - "9080:9080"     # gRPC for clients
+      - "8000:8000"     # Ratel UI
+    volumes:
+      - dgraph_data:/data/dgraph
+    restart: unless-stopped
+
+volumes:
+  dgraph_data:

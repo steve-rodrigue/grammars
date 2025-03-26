@@ -294,5 +294,9 @@ type Grammar interface {
 
 // Repository represents a Grammar repository
 type Repository interface {
+	Init() error
+	List() (map[string][]uint, error)
+	Insert(path []string, grammar Grammar) error
 	Retrieve(reference references.Reference) (Grammar, error)
+	Delete(reference references.Reference) error
 }
