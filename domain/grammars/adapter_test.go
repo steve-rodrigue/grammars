@@ -9,8 +9,8 @@ func TestAdapter_Success(t *testing.T) {
 	remaining := []byte("%!this is some remaining")
 	input := append([]byte(`
 		v1;
-		>.myRoot;
-		#.first.second.third;
+		> .myRoot;
+		# .first .second .third;
 
 		myFirst: !.myFirst[1] .mySecond* .myThird+ .myFourth? .myFifth[1,] .another+ .myValue[/my/path/to/grammar.grammar, 1]
 					[
@@ -35,7 +35,7 @@ func TestAdapter_Success(t *testing.T) {
 					secondTest:!"this is some value";
 				 ;
 
-		another: ![._myConstant].QUOTE #.myFirst![._myConstant].QUOTE $._myConstant[2]![._myConstant].QUOTE $.MY_RULE![._myConstant].QUOTE;
+		another: ![._myConstant].QUOTE #.myFirst ![._myConstant].QUOTE $._myConstant[2] ![._myConstant].QUOTE $.MY_RULE ![._myConstant].QUOTE;
 
 		mySecond: .myFirst[1] ._myConstant* .myThird+ .myFourth[2] .myFifth[1,]
 					[
